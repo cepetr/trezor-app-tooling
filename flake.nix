@@ -26,11 +26,20 @@
         };
 
         rustSrc = pkgs.rust-bin.nightly."2026-02-26".rust-src;
+
+        trezorAppGenerate = pkgs.writeShellScriptBin "trezor-app-generate" ''
+          exec cargo generate \
+            --git https://github.com/cepetr/trezor-app-tooling.git \
+            template \
+            "$@"
+        '';
       in
       {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             rustNightly
+            cargo-generate
+            trezorAppGenerate
             cargo-binutils
             pkgsCross.arm-embedded.buildPackages.binutils
             llvmPackages.clang
@@ -57,11 +66,11 @@
           LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
           RUST_SRC_PATH = "${rustSrc}/lib/rustlib/src/rust/library";
 
-          shellHook = ''
-            export CARGO_INSTALL_ROOT="$TMPDIR/trezor-app-tool"
-            export PATH="$CARGO_INSTALL_ROOT/bin:$PATH"
-            cargo install --root "$CARGO_INSTALL_ROOT" --path /home/pcernin/repos/trezor-firmware/sdk/crates/trezor-app-tool
-          '';
+          # shellHook = ''
+          #   export CARGO_INSTALL_ROOT="$TMPDIR/trezor-app-tool"
+          #   export PATH="$CARGO_INSTALL_ROOT/bin:$PATH"
+          #   cargo install --root "$CARGO_INSTALL_ROOT" --path /home/pcernin/repos/trezor-firmware/sdk/crates/trezor-app-tool
+          # '';
         };
       });
 }
